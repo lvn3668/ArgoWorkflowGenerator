@@ -1,0 +1,85 @@
+#######################################################################    
+  - name: mark-duplicates              
+    inputs: 
+      parameters:
+      - name: sampleid 
+      - name: laneid
+      artifacts:
+      - name: querynamesorted-alignedreads-bam
+        path: /tmp/querynamesorted.alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam
+      - name: querynamesorted-alignedreads-bai
+        path: /tmp/querynamesorted.alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bai        
+    retryStrategy:
+      limit: 10
+    container:
+      image: vandhanak/broadcloudgatk36gatk37-cgs:0.2 
+      command: [bash, -c]  
+      args: ["
+      cd /tmp;    
+       /usr/bin/java -Xms2g -Xmx4g -jar /usr/gitc/picard.jar MarkDuplicates 
+       I=querynamesorted.alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam 
+       O=/tmp/dedup.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam 
+       M=/tmp/dedup.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.metrics VALIDATION_STRINGENCY=SILENT 
+       ASSUME_SORTED=false 
+       REMOVE_DUPLICATES=false 
+       CREATE_INDEX=false CREATE_MD5_FILE=true 
+       OPTICAL_DUPLICATE_PIXEL_DISTANCE=2500 TMP_DIR=`pwd`/tmp 2>/tmp/markduplicates.log;"]
+      resources:                
+        limits:
+          memory : 8000Mi 
+          cpu: 2 
+        requests:
+          memory: 4000Mi
+          cpu: 1  
+    activeDeadlineSeconds: 3600               
+    outputs:
+      parameters:      
+      - name: sampleid
+        globalName: global-sampleid
+        valueFrom:
+          path: /tmp/sampleid
+      - name: laneid
+        globalName: global-laneid
+        valueFrom:
+          path: /tmp/laneid
+      artifacts:      
+      - name: markduplicates-logfile
+        globalName: global-markduplicates-logfile      
+        path: /tmp/markduplicates.log
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: markduplicates.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.markduplicates.log          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey        
+      - name: dedup-bam
+        globalName: global-dedup-bam      
+        path: /tmp/dedup.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam
+        s3:
+          endpoint: storage.googleapis.com
+          bucket: gbsc-argo-artifacts
+          key: dedup.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam         
+          accesskeySecret:
+            name: storage-credentials
+            key: accesskey
+          secretkeySecret:
+            name: storage-credentials
+            key: secretkey  
+      - name: dedup-metrics
+        globalName: global-dedup-metrics        
+        path: /tmp/dedup.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.metrics
+        s3:
+          endpoint: storage.googleapis.com
+          bucket: gbsc-argo-artifacts
+          key: dedup.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.metrics         
+          accesskeySecret:
+            name: storage-credentials
+            key: accesskey
+          secretkeySecret:
+            name: storage-credentials
+            key: secretkey  
+#######################################################################

@@ -1,0 +1,86 @@
+#######################################################################
+#### Apply Base Recalibration #########################################
+  - name: apply-bqsr                                             
+    inputs: 
+      parameters:
+      - name: sampleid 
+      - name: intervalnumber
+      artifacts:
+      - name: coordinatesort-bam
+        path: /tmp/coordinatesort.bam 
+      - name: reference-files-sa
+        path: /tmp/reference.fasta.sa                                
+      - name: reference-files-amb
+        path: /tmp/reference.fasta.amb
+      - name: reference-files-ann
+        path: /tmp/reference.fasta.ann      
+      - name: reference-files-bwt
+        path: /tmp/reference.fasta.bwt      
+      - name: reference-files-dict
+        path: /tmp/reference.dict          
+      - name: reference-files-pac
+        path: /tmp/reference.fasta.pac      
+      - name: reference-files-fasta
+        path: /tmp/reference.fasta
+      - name: reference-files-fai
+        path: /tmp/reference.fasta.fai 
+      - name: recalibration-report
+        path: /tmp/recalibration.table
+    retryStrategy: 
+      limit: 10
+    container:
+      image: vandhanak/broadcloudgatk36gatk37-cgs:0.2  
+      command: [bash, -c]  
+      args: ["
+      cd /tmp;
+      /usr/local/bin/samtools index -b /tmp/coordinatesort.bam 
+      /tmp/coordinatesort.bam.bai;
+      /usr/bin/java -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal 
+      -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails 
+      -Xloggc:gc_log.log -Dsamjdk.use_async_io=false 
+      -Xms2g -Xmx4g -jar /usr/gitc/gatk37/GenomeAnalysisTK.jar 
+      -T PrintReads -R /tmp/reference.fasta 
+      -I /tmp/coordinatesort.bam -o /tmp/applybqsr.{{inputs.parameters.sampleid}}.{{inputs.parameters.intervalnumber}}.bam 
+      --BQSR /tmp/recalibration.table 2>/tmp/applybqsr.log"]
+      resources:                
+        limits:
+          memory : 8000Mi 
+          cpu: 4 
+        requests:
+          memory: 6000Mi
+          cpu: 4  
+    activeDeadlineSeconds: 3600
+    outputs:
+      parameters:
+      - name: sampleid 
+        globalName: global-sampleid
+        valueFrom:
+          path: /tmp/sampleid   
+      artifacts:
+      - name: applybqsr-logfile
+        globalName: global-applybqsr-logfile       
+        path: /tmp/applybqsr.log   
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: applybqsr.{{inputs.parameters.sampleid}}.{{inputs.parameters.intervalnumber}}.log          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey              
+      - name: applybqsr-bam
+        globalName: global-applybqsr-bam       
+        path: /tmp/applybqsr.{{inputs.parameters.sampleid}}.{{inputs.parameters.intervalnumber}}.bam
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: applybqsr.{{inputs.parameters.sampleid}}.{{inputs.parameters.intervalnumber}}.bam          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey         
+#######################################################################           

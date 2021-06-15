@@ -1,0 +1,77 @@
+####################################################################### 
+  - name: sort-by-coordinate              
+    inputs: 
+      parameters:
+      - name: sampleid
+      - name: laneid    
+      artifacts:
+      - name: mergebams-bam
+        path: /tmp/mergebams.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam
+    retryStrategy:
+      limit: 10
+    container:
+      image: vandhanak/broadcloudgatk36gatk37-cgs:0.2  
+      command: [bash, -c] 
+      args: ["
+      /usr/bin/java -Xms1g -Xmx4g -jar /usr/gitc/picard.jar SortSam 
+      INPUT=mergebams.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam OUTPUT=/tmp/coordinatesort.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam 
+      SORT_ORDER=\"coordinate\" CREATE_MD5_FILE=true CREATE_INDEX=true TMP_DIR=`pwd`/tmp 2>/tmp/coordinatesort.log;"]
+      resources:               
+        limits:
+          memory : 8000Mi 
+          cpu: 2 
+        requests:
+          memory: 6000Mi
+          cpu: 1     
+    activeDeadlineSeconds: 3600                
+    outputs:
+      parameters:
+      - name: sampleid 
+        globalName: global-sampleid
+        valueFrom:
+          path: /tmp/sampleid
+      - name: laneid 
+        globalName: global-laneid
+        valueFrom:
+          path: /tmp/laneid     
+      artifacts:
+      - name: coordinatesort-logfile
+        globalName: global-coordinatesort-logfile      
+        path: /tmp/coordinatesort.log
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: coordinatesort.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.coordinatesort.log          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey 
+      - name: coordinatesort-bam
+        globalName: global-coordinatesort-bam       
+        path: /tmp/coordinatesort.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam        
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: coordinatesort.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey 
+      - name: coordinatesort-bai
+        globalName: global-coordinatesort-bai        
+        path: /tmp/coordinatesort.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bai             
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: coordinatesort.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bai          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey 
+#######################################################################

@@ -1,0 +1,33 @@
+#######################################################################
+      - - name: sortbyqueryname
+          template: sort-by-queryname       
+          arguments:
+           parameters: 
+           - name: sampleid
+             value: "{{item.sampleid}}"           
+           - name: laneid
+             value: "{{item.laneid}}"
+           artifacts:
+           - name: alignedreads-bam
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: alignedreads.{{item.sampleid}}.{{item.laneid}}.bam
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey          
+           - name: alignedreads-bai
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: alignedreads.{{item.sampleid}}.{{item.laneid}}.bai      
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+#######################################################################

@@ -1,0 +1,170 @@
+#######################################################################
+##### BQSR on this coordinate sorted merged BAM with RG Added #########
+#######################################################################     
+#######################################################################  
+      - - name: baserecalibration
+          template: base-recalibration         
+          arguments:
+           parameters: 
+           - name: sampleid
+             value: "{{item.sampleid}}"    
+           - name: laneid
+             value: 1  
+           - name: intervalnumber
+             value: 21:20000001-40000000                
+           artifacts:       
+           - name: coordinatesort-bam
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: coordinatesort.{{item.sampleid}}.bam          
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey          
+           - name: reference-files-sa 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.fasta.sa         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey                                                   
+           - name: reference-files-pac 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.fasta.pac         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: reference-files-fai 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.fasta.fai         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey               
+           - name: reference-files-bwt 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.fasta.bwt         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: reference-files-ann 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.fasta.ann         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: reference-files-amb 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.fasta.amb         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: reference-files-fasta 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.fasta         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: reference-files-dict 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/chr21/human_g1k_v37_decoy.21.dict         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: dbsnp
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/dbSNP.b151.GRCh37p13.All_20180423.vcf.gz          
+              accesskeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretkeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: dbsnp-tbi
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/dbSNP.b151.GRCh37p13.All_20180423.vcf.gz.tbi           
+              accesskeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretkeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: gold-standard-indels-vcf
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/Mills_and_1000G_gold_standard.indels.b37.vcf          
+              accesskeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretkeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: gold-standard-indels-vcf-idx
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/Mills_and_1000G_gold_standard.indels.b37.vcf.idx          
+              accesskeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretkeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: intervalslist
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: tmp/cgs_exome_ace3_plusminus20bp_allcontigs.interval_list           
+              accesskeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretkeySecret:
+               name: storage-credentials
+               key: secretkey
+#######################################################################

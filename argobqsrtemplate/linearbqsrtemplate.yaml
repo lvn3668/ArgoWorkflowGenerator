@@ -1,0 +1,100 @@
+#######################################################################
+#### Base Recalibration ###############################################
+#######################################################################     
+  - name: base-recalibration              
+    inputs: 
+      parameters:
+      - name: sampleid
+      - name: laneid     
+      - name: intervalnumber 
+      artifacts:
+      - name: coordinatesort-bam
+        path: /tmp/coordinatesort.bam 
+      - name: reference-files-sa
+        path: /tmp/reference.fasta.sa                                
+      - name: reference-files-amb
+        path: /tmp/reference.fasta.amb
+      - name: reference-files-ann
+        path: /tmp/reference.fasta.ann      
+      - name: reference-files-bwt
+        path: /tmp/reference.fasta.bwt      
+      - name: reference-files-dict
+        path: /tmp/reference.dict          
+      - name: reference-files-pac
+        path: /tmp/reference.fasta.pac      
+      - name: reference-files-fasta
+        path: /tmp/reference.fasta
+      - name: reference-files-fai
+        path: /tmp/reference.fasta.fai 
+      - name: dbsnp
+        path: /tmp/dbSNP.vcf.gz
+      - name: dbsnp-tbi
+        path: /tmp/dbSNP.vcf.gz.tbi
+      - name: gold-standard-indels-vcf
+        path: /tmp/gold_standard.indels.vcf 
+      - name: gold-standard-indels-vcf-idx
+        path: /tmp/gold_standard.indels.vcf.idx         
+      - name: intervalslist
+        path: /tmp/intervals.interval_list 
+#######################################################################
+    retryStrategy: 
+      limit: 10
+    container:
+      image: vandhanak/broadcloudgatk36gatk37-cgs:0.2  
+      command: [bash, -c]  
+      args: ["
+      cd /tmp;
+      /usr/local/bin/samtools index -b /tmp/coordinatesort.bam 
+      /tmp/coordinatesort.bai;
+      /usr/bin/java -Xms4G -Xmx6G -jar /usr/gitc/gatk37/GenomeAnalysisTK.jar 
+      -T BaseRecalibrator -R /tmp/reference.fasta 
+      -I /tmp/coordinatesort.bam 
+      -o /tmp/recalibration.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.{{inputs.parameters.intervalnumber}}.table 
+      -L intervals.interval_list
+      -knownSites /tmp/gold_standard.indels.vcf 2>/tmp/bqsr.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.{{inputs.parameters.intervalnumber}}.log"]
+      resources:                
+        limits:
+          memory : 8000Mi 
+          cpu: 4 
+        requests:
+          memory: 6000Mi
+          cpu: 4  
+    activeDeadlineSeconds: 3600
+    outputs: 
+      parameters:
+      - name: sampleid 
+        globalName: global-sampleid
+        valueFrom:
+          path: /tmp/sampleid
+      - name: laneid 
+        globalName: global-laneid
+        valueFrom:
+          path: /tmp/laneid      
+      artifacts:
+      - name: bqsr-logfile
+        globalName: global-bqsr-logfile       
+        path: /tmp/bqsr.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.{{inputs.parameters.intervalnumber}}.log   
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: bqsr.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.{{inputs.parameters.intervalnumber}}.log          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey        
+      - name: bqsr-recalibration-report
+        globalName: global-bqsr-recalibration-report      
+        path: /tmp/bqsr.recalibration.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.{{inputs.parameters.intervalnumber}}.table
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: bqsr.recalibration.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.{{inputs.parameters.intervalnumber}}.table          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey           
+#######################################################################           

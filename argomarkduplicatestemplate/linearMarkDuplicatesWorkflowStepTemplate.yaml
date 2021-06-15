@@ -1,0 +1,33 @@
+## Mark Duplicates ####################################################
+#######################################################################
+      - - name: markduplicates  
+          template: mark-duplicates         
+          arguments:
+           parameters: 
+           - name: sampleid
+             value: "{{item.sampleid}}"           
+           - name: laneid
+             value: "{{item.laneid}}"                 
+           artifacts:    
+           - name: querynamesort-alignedreads-bam
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: querynamesort.alignedreads.{{item.sampleid}}.{{item.laneid}}.bam         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: querynamesort-alignedreads-bai
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: querynamesort.alignedreads.{{item.sampleid}}.{{item.laneid}}.bam.bai         
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey

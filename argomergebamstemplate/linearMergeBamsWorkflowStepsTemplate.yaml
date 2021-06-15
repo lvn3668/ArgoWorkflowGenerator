@@ -1,0 +1,35 @@
+####################################################################### 
+### Merge deduped BAMs, to get a single BAM file before coordinate sorting ##
+#######################################################################
+      - - name: mergebam 
+          template: merge-bams      
+          arguments:
+           parameters: 
+           - name: sampleid
+             value: "{{item.sampleid}}" 
+           - name: previousstepname
+             value: "aligned-deduped-per-lane"                              
+           artifacts:       
+           - name: reads-bam-lane1 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: dedup.001.001.bam        
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+           - name: reads-bam-lane2 
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: dedup.001.002.bam        
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey
+#######################################################################               

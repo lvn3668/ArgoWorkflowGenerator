@@ -1,0 +1,22 @@
+#######################################################################
+      - - name: sortbycoordinate
+          template: sort-by-coordinate       
+          arguments:
+           parameters: 
+           - name: sampleid
+             value: "{{item.sampleid}}"           
+           - name: laneid
+             value: "{{item.laneid}}"
+           artifacts:
+           - name: mergebams-bam
+             s3:
+              endpoint: storage.googleapis.com
+              bucket: gbsc-argo-artifacts
+              key: mergebams.{{item.sampleid}}.{{item.laneid}}.bam
+              accessKeySecret:
+               name: storage-credentials
+               key: accesskey
+              secretKeySecret:
+               name: storage-credentials
+               key: secretkey          
+#######################################################################

@@ -1,0 +1,91 @@
+#####################BWA MEM Invoked Template##########################
+### The order of variables in this file may not be changed ############
+  - name: bwa-mem             
+    inputs: 
+      parameters:
+      - name: sampleid
+      - name: laneid 
+      - name: gender
+      artifacts:
+      - name: fastq1
+        path: /tmp/fastq1.fq            
+      - name: fastq2
+        path: /tmp/fastq2.fq 
+      - name: reference-files-sa
+        path: /tmp/reference.fasta.sa                                
+      - name: reference-files-amb
+        path: /tmp/reference.fasta.amb
+      - name: reference-files-ann
+        path: /tmp/reference.fasta.ann      
+      - name: reference-files-bwt
+        path: /tmp/reference.fasta.bwt      
+      - name: reference-files-dict
+        path: /tmp/reference.dict          
+      - name: reference-files-pac
+        path: /tmp/reference.fasta.pac      
+      - name: reference-files-fasta
+        path: /tmp/reference.fasta
+      - name: reference-files-fai
+        path: /tmp/reference.fai
+    retryStrategy:
+      limit: 10
+    container:
+      image: vandhanak/broadcloudgatk36gatk37-cgs:0.2 
+      command: [sh, -c]  
+      args: ["
+      cd /tmp;
+      /usr/gitc/bwa mem -v 3 -t 31 -M 
+       reference.fasta fastq1.fq fastq2.fq | 
+       /usr/local/bin/samtools view -b -S -h - -o /tmp/alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam ; 
+      /usr/local/bin/samtools sort /tmp/alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam > /tmp/sortedalignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam ;
+      /usr/local/bin/samtools index -b /tmp/sortedalignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam /tmp/sortedalignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bai"]      
+      resources:               
+        limits:
+          memory : 8000Mi 
+          cpu: 2 
+        requests:
+          memory : 100Mi
+          cpu: 2
+    activeDeadlineSeconds: 3600           
+    outputs:
+      parameters:
+      - name: sampleid 
+        globalName: global-sampleid       
+        valueFrom:
+         path: /tmp/sampleid
+      - name: laneid
+        globalName: global-laneid
+        valueFrom:
+         path: /tmp/laneid   
+      - name: gender
+        globalName: global-gender       
+        valueFrom:
+         path: /tmp/gender    
+      artifacts:
+      - name: alignedreads-bam
+        globalName: global-alignedreads-bam       
+        path: /tmp/alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bam          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey 
+      - name: alignedreads-bai
+        globalName: global-alignedreads-bai        
+        path: /tmp/alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bai
+        s3:
+         endpoint: storage.googleapis.com
+         bucket: gbsc-argo-artifacts
+         key: alignedreads.{{inputs.parameters.sampleid}}.{{inputs.parameters.laneid}}.bai          
+         accessKeySecret:
+          name: storage-credentials
+          key: accesskey
+         secretKeySecret:
+          name: storage-credentials
+          key: secretkey
+#######################################################################
